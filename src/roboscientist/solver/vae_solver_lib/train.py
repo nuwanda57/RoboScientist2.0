@@ -48,6 +48,8 @@ def build_ordered_batches(formula_file, solver):
             f_to_eval = [float(x) if x in solver.params.float_constants else x for x in f_to_eval]
             f_to_eval = rs_equation.Equation(f_to_eval)
             if not f_to_eval.check_validity()[0]:
+                print(f_to_eval.check_validity())
+                print(f_to_eval)
                 t_c += 1
                 continue
             # constants = optimize_constants.optimize_constants(f_to_eval, solver.xs, solver.ys)

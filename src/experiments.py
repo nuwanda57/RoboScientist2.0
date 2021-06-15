@@ -19,15 +19,15 @@ def pretrain(exp_name):
     vae_solver_params = rs_vae_solver.VAESolverParams(
         device=torch.device('cuda'),
         true_formula=f,
-        # optimizable_constants=["Symbol('const%d')" % i for i in range(15)],
+        # optimizable_constants=['const'],
         kl_coef=0.5,
         percentile=5,
         initial_xs=X,
         initial_ys=y_true,
         retrain_file='retrain_1_' + str(time.time()),
         file_to_sample='sample_1_' + str(time.time()),
-        functions=['sin', 'add', 'log'],
-        arities={'sin': 1, 'add': 2, 'log': 1},
+        functions=['sin', 'add', 'safe_log', 'safe_sqrt', 'cos', 'mul', 'sub'],
+        arities={'sin': 1, 'add': 2, 'sub': 2, 'safe_log': 1, 'cos': 1, 'mul': 2, 'safe_sqrt': 1},
         free_variables=["x1"],
         model_params={'token_embedding_dim': 128, 'hidden_dim': 128,
                       'encoder_layers_cnt': 1, 'decoder_layers_cnt': 1,
@@ -54,23 +54,23 @@ def pretrain(exp_name):
 def train(exp_name):
     with open('wandb_key') as f:
         os.environ["WANDB_API_KEY"] = f.read().strip()
-    f = rs_equation.Equation(['sin', "x1"])
+    f = rs_equation.Equation(['add', 'safe_sqrt', "x1", 'mul', 'sin', "x1", 'safe_log', "x1"])
     X = np.linspace(0.1, 2., num=1000).reshape(-1, 1)
     y_true = f.func(X)
 
     vae_solver_params = rs_vae_solver.VAESolverParams(
         device=torch.device('cuda'),
         true_formula=f,
-        # optimizable_constants=["Symbol('const%d')" % i for i in range(15)],
+        # optimizable_constants=['const'],
         kl_coef=0.5,
         percentile=5,
         initial_xs=X,
         initial_ys=y_true,
         retrain_file='retrain_1_' + str(time.time()),
         file_to_sample='sample_1_' + str(time.time()),
-        functions=['sin', 'add', 'log'],
-        arities={'sin': 1, 'add': 2, 'log': 1},
-        free_variables=["Symbol('x0')"],
+        functions=['sin', 'add', 'safe_log', 'safe_sqrt', 'cos', 'mul', 'sub'],
+        arities={'sin': 1, 'add': 2, 'sub': 2, 'safe_log': 1, 'cos': 1, 'mul': 2, 'safe_sqrt': 1},
+        free_variables=["x1"],
         model_params={'token_embedding_dim': 128, 'hidden_dim': 128,
                       'encoder_layers_cnt': 1, 'decoder_layers_cnt': 1,
                       'latent_dim': 8, 'x_dim': 1},
@@ -90,4 +90,4 @@ def train(exp_name):
 
     logger = rs_logger.WandbLogger('some_experiments',exp_name + 'tmp',logger_init_conf)
     vs = rs_vae_solver.VAESolver(logger, 'checkpoint_1', vae_solver_params)
-    vs.solve(f, epochs=200)
+    vs.solve((X, y_true), epochs=200)

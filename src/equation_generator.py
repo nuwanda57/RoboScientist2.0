@@ -25,12 +25,12 @@ def generate_formula(all_tokens, max_len, functions, arities):
 
 def generate_pretrain_dataset(size, max_len, file=None, functions=None, arities=None, all_tokens=None):
     if all_tokens is None:
-        all_tokens = ['x1', 'sin', 'add', 'log']
+        all_tokens = ['x1', 'sin', 'add', 'safe_log']
         # "Symbol('const%d')",
     if functions is None:
-        functions = ['sin', 'add', 'log']
+        functions = ['sin', 'add', 'safe_log']
     if arities is None:
-        arities = {'cos': 1, 'sin': 1, 'add': 2, 'Mul': 2,  'Div': 2, 'Sub': 2, 'Pow': 2, 'log': 1}
+        arities = {'cos': 1, 'sin': 1, 'add': 2, 'Mul': 2,  'Div': 2, 'Sub': 2, 'Pow': 2, 'safe_log': 1}
     formulas = []
     while len(formulas) < size:
         new_formulas = [generate_formula(all_tokens, max_len, functions, arities) for _ in range(size)]
