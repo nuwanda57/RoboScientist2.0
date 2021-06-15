@@ -49,5 +49,5 @@ def generate_pretrain_dataset(size, max_len, file=None, functions=None, arities=
 
 
 if __name__ == '__main__':
-    generate_pretrain_dataset(2000, 14, 'train')
-    generate_pretrain_dataset(1000, 14, 'val')
+    generate_pretrain_dataset(20000, 14, 'train')
+    generate_pretrain_dataset(10000, 14, 'val')

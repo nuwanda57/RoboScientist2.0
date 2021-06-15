@@ -207,13 +207,13 @@ class VAESolver(rs_solver_base.BaseSolver):
         custom_log = {}
         self.stats.clear_the_oldest_step()
 
-        noises = self._maybe_add_noise_to_model_params(epoch)
+        # noises = self._maybe_add_noise_to_model_params(epoch)
 
         cond_x, cond_y = self._get_condition(self.params.n_formulas_to_sample)
         self.model.sample(self.params.n_formulas_to_sample, self.params.max_formula_length,
                           self.params.file_to_sample, Xs=cond_x, ys=cond_y, ensure_valid=False, unique=True)
 
-        self._maybe_remove_noise_from_model_params(epoch, noises)
+        # self._maybe_remove_noise_from_model_params(epoch, noises)
 
         valid_formulas = []
         valid_equations = []

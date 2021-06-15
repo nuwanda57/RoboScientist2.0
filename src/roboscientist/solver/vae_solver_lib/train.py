@@ -19,15 +19,14 @@ def build_single_batch_from_formulas_list(formulas_list, solver, batch_Xs, batch
     new_batch_ys = []
     # print(len(batch_Xs), type(batch_Xs))
     for i, f in enumerate(formulas_list):
-        try:
-            f_idx = [solver._token2ind[t] for t in f]
-            padding = [solver._token2ind[config.PADDING]] * (max_len - len(f_idx))
-            batch_in.append([solver._token2ind[config.START_OF_SEQUENCE]] + f_idx + padding)
-            batch_out.append(f_idx + [solver._token2ind[config.END_OF_SEQUENCE]] + padding)
-            new_batch_Xs.append(batch_Xs[i])
-            new_batch_ys.append(batch_ys[i])
-        except:
-            t_c +=1
+        f_idx = [solver._token2ind[t] for t in f]
+        padding = [solver._token2ind[config.PADDING]] * (max_len - len(f_idx))
+        batch_in.append([solver._token2ind[config.START_OF_SEQUENCE]] + f_idx + padding)
+        batch_out.append(f_idx + [solver._token2ind[config.END_OF_SEQUENCE]] + padding)
+        new_batch_Xs.append(batch_Xs[i])
+        new_batch_ys.append(batch_ys[i])
+        # except:
+        #     t_c +=1
     print(f'Failed to add formula to single batch {t_c}/{len(formulas_list)}', flush=True)
     # we transpose here to make it compatible with LSTM input
     return (torch.LongTensor(batch_in).T.contiguous().to(solver.params.device), \

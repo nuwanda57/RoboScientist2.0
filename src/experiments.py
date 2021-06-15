@@ -28,7 +28,7 @@ def pretrain(exp_name):
         file_to_sample='sample_1_' + str(time.time()),
         functions=['sin', 'add', 'log'],
         arities={'sin': 1, 'add': 2, 'log': 1},
-        free_variables=["Symbol('x0')"],
+        free_variables=["x1"],
         model_params={'token_embedding_dim': 128, 'hidden_dim': 128,
                       'encoder_layers_cnt': 1, 'decoder_layers_cnt': 1,
                       'latent_dim': 8, 'x_dim': 1},
