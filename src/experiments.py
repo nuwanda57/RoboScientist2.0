@@ -26,8 +26,8 @@ def pretrain(exp_name):
         initial_ys=y_true,
         retrain_file='retrain_1_' + str(time.time()),
         file_to_sample='sample_1_' + str(time.time()),
-        functions=['sin', 'add', 'log'],
-        arities={'sin': 1, 'add': 2, 'log': 1},
+        functions=['sin', 'add', 'safe_log'],
+        arities={'sin': 1, 'add': 2, 'safe_log': 1},
         free_variables=["x1"],
         model_params={'token_embedding_dim': 128, 'hidden_dim': 128,
                       'encoder_layers_cnt': 1, 'decoder_layers_cnt': 1,
@@ -68,9 +68,9 @@ def train(exp_name):
         initial_ys=y_true,
         retrain_file='retrain_1_' + str(time.time()),
         file_to_sample='sample_1_' + str(time.time()),
-        functions=['sin', 'add', 'log'],
-        arities={'sin': 1, 'add': 2, 'log': 1},
-        free_variables=["Symbol('x0')"],
+        functions=['sin', 'add', 'safe_log'],
+        arities={'sin': 1, 'add': 2, 'safe_log': 1},
+        free_variables=["x1"],
         model_params={'token_embedding_dim': 128, 'hidden_dim': 128,
                       'encoder_layers_cnt': 1, 'decoder_layers_cnt': 1,
                       'latent_dim': 8, 'x_dim': 1},
@@ -90,4 +90,4 @@ def train(exp_name):
 
     logger = rs_logger.WandbLogger('some_experiments',exp_name + 'tmp',logger_init_conf)
     vs = rs_vae_solver.VAESolver(logger, 'checkpoint_1', vae_solver_params)
-    vs.solve(f, epochs=200)
+    vs.solve((X, y_true), epochs=200)
