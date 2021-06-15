@@ -71,7 +71,6 @@ class WandbLogger():
         self._AL_ordered_current_epoch_best_mses = []
         self._AL_ordered_current_epoch_best_real_mses = []
 
-
     def log_metrics(self, reference_dataset, equations_, AL_Xs=None, AL_ys=None):
         """
         :param reference_dataset: X, y. Desired Solution.
@@ -90,7 +89,7 @@ class WandbLogger():
             except:
                 continue
 
-        str_equations = [str(eq) for eq in equations]
+        str_equations = [eq.repr() for eq in equations]
 
         # sort in terms of mse
         ordered_equation_mse_pairs = sorted(zip(str_equations, mses), key=lambda x: x[1])
