@@ -25,6 +25,9 @@ class Equation:
     def repr(self):
         return self._repr
 
+    def const_count(self):
+        return self._const_count
+
     def func(self, X, constants=None):
         stack = deque()
         const_ind = 0

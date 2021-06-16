@@ -1,4 +1,5 @@
 import roboscientist.solver.solver_base as rs_solver_base
+import roboscientist.solver.vae_solver_lib.optimize_constants as rs_optimize_constants
 import roboscientist.solver.vae_solver_lib.config as rs_config
 import roboscientist.solver.vae_solver_lib.model as rs_model
 import roboscientist.solver.vae_solver_lib.train as rs_train
@@ -234,8 +235,8 @@ class VAESolver(rs_solver_base.BaseSolver):
                 f_to_eval = rs_equation.Equation(f_to_eval)
                 if not f_to_eval.check_validity()[0]:
                     continue
-                # constants = optimize_constants.optimize_constants(f_to_eval, self.xs, self.ys)
-                y = f_to_eval.func(self.xs.reshape(-1, self.params.model_params['x_dim']), None)
+                constants = rs_optimize_constants.optimize_constants(f_to_eval, self.xs, self.ys)
+                y = f_to_eval.func(self.xs.reshape(-1, self.params.model_params['x_dim']), constants)
                 mse = mean_squared_error(y, self.ys)
                 valid_formulas.append(line.strip())
                 valid_mses.append(mse)

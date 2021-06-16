@@ -19,7 +19,7 @@ def pretrain(exp_name):
     vae_solver_params = rs_vae_solver.VAESolverParams(
         device=torch.device('cuda'),
         true_formula=f,
-        # optimizable_constants=['const'],
+        optimizable_constants=['const'],
         kl_coef=0.5,
         percentile=5,
         initial_xs=X,
@@ -61,7 +61,7 @@ def train(exp_name):
     vae_solver_params = rs_vae_solver.VAESolverParams(
         device=torch.device('cuda'),
         true_formula=f,
-        # optimizable_constants=['const'],
+        optimizable_constants=['const'],
         kl_coef=0.5,
         percentile=5,
         initial_xs=X,
