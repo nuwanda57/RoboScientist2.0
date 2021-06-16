@@ -56,7 +56,7 @@ def train(exp_name):
         os.environ["WANDB_API_KEY"] = f.read().strip()
     f = rs_equation.Equation(['add', 'safe_sqrt', "x1", 'mul', 'sin', "x1", 'safe_log', "x1"])
     X = np.linspace(0.1, 2., num=1000).reshape(-1, 1)
-    y_true = f.func(X)
+    y_true = np.sin(2.7812 * X) + 0.45
 
     vae_solver_params = rs_vae_solver.VAESolverParams(
         device=torch.device('cuda'),

@@ -53,6 +53,7 @@ def build_ordered_batches(formula_file, solver):
                 t_c += 1
                 continue
             constants = optimize_constants.optimize_constants(f_to_eval, solver.xs, solver.ys)
+            # print(f_to_eval.repr(constants), constants, f_to_eval._prefix_list)
             y = f_to_eval.func(solver.xs.reshape(-1, solver.params.model_params['x_dim']), constants)
             if y.shape == (1,) or y.shape == (1, 1) or y.shape == ():
                 # print(y, type(y), y.dtype)

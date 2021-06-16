@@ -15,10 +15,10 @@ def _loss(constants, X, y, equation):
 
 def optimize_constants(candidate_equation, X, y):
     if candidate_equation.const_count() > 0:
-        try:
-            constants = minimize(lambda constants: _loss(constants, X, y, candidate_equation),
-                np.random.uniform(low=0.1, high=1, size=candidate_equation.const_count())).x
-            return constants
-        except:
-            return None
+        # try:
+        constants = minimize(lambda constants: _loss(constants, X, y, candidate_equation),
+            np.random.uniform(low=0.1, high=1, size=candidate_equation.const_count())).x
+        return constants
+        # except:
+        #     return None
     return None

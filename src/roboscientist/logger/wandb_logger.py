@@ -81,13 +81,18 @@ class WandbLogger():
 
         mses = []
         equations = []
-        for eq in equations_:
-            try:
-                m = mean_squared_error(y_true, eq.func(X))
-                mses.append(m)
-                equations.append(eq)
-            except:
-                continue
+        constants2 = []
+        for eq, constants in zip(equations_, all_constants):
+            y = eq.func(X, constants)
+            if y.shape == (1,) or y.shape == (1, 1) or y.shape == ():
+                # print(y, type(y), y.dtype)
+                y = np.repeat(y.astype(np.float64), X.shape[0]).reshape(-1, 1)
+            m = mean_squared_error(y_true, y)
+            mses.append(m)
+            equations.append(eq)
+            constants2.append(constants)
+            # except:
+            #     continue
 
         str_equations = [eq.repr(constants) for eq, constants in zip(equations, all_constants)]
 
