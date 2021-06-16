@@ -186,11 +186,11 @@ class VAESolver(rs_solver_base.BaseSolver):
                            pretrain_batches=self.pretrain_batches, pretrain_val_batches=self.valid_batches,
                            kl_coef=self.params.kl_coef)
 
-    def log_metrics(self, reference_dataset, candidate_equations, custom_log):
+    def log_metrics(self, reference_dataset, candidate_equations, all_constants, custom_log):
         if not self.params.active_learning:
-            self._logger.log_metrics(reference_dataset, candidate_equations)
+            self._logger.log_metrics(reference_dataset, candidate_equations, all_constants)
         else:
-            self._logger.log_metrics(reference_dataset, candidate_equations, self.xs, self.ys)
+            self._logger.log_metrics(reference_dataset, candidate_equations, all_constants, self.xs, self.ys)
         self._logger.commit_metrics(custom_log)
 
     def create_checkpoint(self, checkpoint_file):
@@ -219,6 +219,7 @@ class VAESolver(rs_solver_base.BaseSolver):
         valid_formulas = []
         valid_equations = []
         valid_mses = []
+        all_constants = []
         n_all = 0
         with open(self.params.file_to_sample) as f:
             for line in f:
@@ -237,10 +238,15 @@ class VAESolver(rs_solver_base.BaseSolver):
                     continue
                 constants = rs_optimize_constants.optimize_constants(f_to_eval, self.xs, self.ys)
                 y = f_to_eval.func(self.xs.reshape(-1, self.params.model_params['x_dim']), constants)
+                if y.shape == (1,) or y.shape == (1, 1) or y.shape == ():
+                    # print(y, type(y), y.dtype)
+                    y = np.repeat(y.astype(np.float64),
+                                  self.xs.reshape(-1, self.params.model_params['x_dim']).shape[0]).reshape(-1, 1)
                 mse = mean_squared_error(y, self.ys)
                 valid_formulas.append(line.strip())
                 valid_mses.append(mse)
                 valid_equations.append(f_to_eval)
+                all_constants.append(constants)
         custom_log['unique_valid_formulas_sampled_percentage'] = len(valid_formulas) / self.params.n_formulas_to_sample
         custom_log['unique_formulas_sampled_percentage'] = n_all / self.params.n_formulas_to_sample
         custom_log['unique_valid_to_all_unique'] = len(valid_formulas) / n_all
@@ -271,7 +277,7 @@ class VAESolver(rs_solver_base.BaseSolver):
         #     self._add_next_point(next_point)
         #     custom_log['next_point_value'] = next_point
 
-        return valid_equations, custom_log
+        return valid_equations, all_constants, custom_log
 
     def _get_condition(self, n):
         cond_x = np.repeat(self.xs.reshape(1, -1, self.params.model_params['x_dim']), n, axis=0)

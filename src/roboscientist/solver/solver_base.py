@@ -6,16 +6,16 @@ class BaseSolver:
         self._logger = logger
         self._epoch = 0
 
-    def log_metrics(self, reference_dataset, candidate_equations, custom_log):
-        self._logger.log_metrics(reference_dataset, candidate_equations)
+    def log_metrics(self, reference_dataset, candidate_equations, all_constants, custom_log):
+        self._logger.log_metrics(reference_dataset, candidate_equations, all_constants)
         self._logger.commit_metrics(custom_log)
 
     def solve(self, reference_dataset, epochs: int=100):
         candidate_equations = None
         for epoch in range(epochs):
             self._epoch = epoch
-            candidate_equations, custom_log = self._training_step(reference_dataset, epoch)
-            self.log_metrics(reference_dataset, candidate_equations, custom_log)
+            candidate_equations, all_constants, custom_log = self._training_step(reference_dataset, epoch)
+            self.log_metrics(reference_dataset, candidate_equations, all_constants, custom_log)
 
         return candidate_equations
 

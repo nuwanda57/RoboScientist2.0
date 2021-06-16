@@ -54,10 +54,13 @@ def build_ordered_batches(formula_file, solver):
                 continue
             constants = optimize_constants.optimize_constants(f_to_eval, solver.xs, solver.ys)
             y = f_to_eval.func(solver.xs.reshape(-1, solver.params.model_params['x_dim']), constants)
-            if y.shape == (1,) or y.shape == (1, 1):
-                y = np.repeat(y, solver.xs.reshape(-1, solver.params.model_params['x_dim'])[0]).reshape(-1, 1)
+            if y.shape == (1,) or y.shape == (1, 1) or y.shape == ():
+                # print(y, type(y), y.dtype)
+                y = np.repeat(y.astype(np.float64),
+                              solver.xs.reshape(-1, solver.params.model_params['x_dim']).shape[0]).reshape(-1, 1)
             if not np.isfinite(y).all() or y.shape == () or \
                     solver.xs.reshape(-1, solver.params.model_params['x_dim']).shape[0] != y.reshape(-1, 1).shape[0]:
+                print(y, type(y), y.shape)
                 raise 42
             Xs.append(solver.xs.reshape(-1, solver.params.model_params['x_dim']))
             ys.append(y.reshape(-1, 1))
