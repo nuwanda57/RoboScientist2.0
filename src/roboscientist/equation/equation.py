@@ -22,8 +22,36 @@ class Equation:
     def check_validity(self):
         return self._status == 'OK', self._status
 
-    def repr(self):
-        return self._repr
+    def repr(self, constants=None):
+        if constants is None:
+            return self._repr
+        stack = deque()
+        const_ind = 0
+        for elem in self._prefix_list[::-1]:
+            if elem in rs_operators.VARIABLES:
+                stack.append(elem)
+                continue
+            if elem == rs_operators.CONST_SYMBOL:
+                if constants is not None and const_ind < len(constants):
+                    stack.append(str(constants[const_ind]))
+                    const_ind += 1
+                else:
+                    raise ConstantsCountError(f'not enough constants passed {self._prefix_list}, {constants}')
+                continue
+            if elem in rs_operators.OPERATORS:
+                operator = rs_operators.OPERATORS[elem]
+                if len(stack) < operator.arity:
+                    return f'Invalid Equation {self._prefix_list}'
+                args = [stack.pop() for _ in range(operator.arity)]
+                stack.append(operator.repr(*args))
+                continue
+            return f'Invalid symbol in Equation {self._prefix_list}'
+        if len(stack) != 1:
+            return f'Invalid Equation {self._prefix_list}'
+        return stack.pop()
+
+    def const_count(self):
+        return self._const_count
 
     def func(self, X, constants=None):
         stack = deque()

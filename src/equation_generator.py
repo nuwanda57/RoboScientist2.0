@@ -12,7 +12,7 @@ def generate_formula(all_tokens, max_len, functions, arities):
         for _ in range(max_len):
             token = random.choice(all_tokens)
             if 'const' in token:
-                token = token % const_ind
+                token = token
                 const_ind += 1
             formula.append(token)
             if token in functions:
@@ -25,12 +25,15 @@ def generate_formula(all_tokens, max_len, functions, arities):
 
 def generate_pretrain_dataset(size, max_len, file=None, functions=None, arities=None, all_tokens=None):
     if all_tokens is None:
-        all_tokens = ['x1', 'sin', 'add', 'safe_log']
+        # all_tokens = ['x1', 'sin', 'add', 'safe_log', 'safe_sqrt', 'cos', 'mul', 'sub', 'const']
+        all_tokens = ['x1', 'sin', 'add', 'cos', 'mul',]
         # "Symbol('const%d')",
     if functions is None:
-        functions = ['sin', 'add', 'safe_log']
+        # functions = ['sin', 'add', 'safe_log', 'safe_sqrt', 'cos', 'mul', 'sub']
+        functions = ['sin', 'add', 'cos', 'mul']
     if arities is None:
-        arities = {'cos': 1, 'sin': 1, 'add': 2, 'Mul': 2,  'Div': 2, 'Sub': 2, 'Pow': 2, 'safe_log': 1}
+        arities = {'cos': 1, 'sin': 1, 'add': 2, 'mul': 2,  'div': 2, 'sub': 2, 'pow': 2, 'safe_log': 1,
+                   'safe_sqrt': 1}
     formulas = []
     while len(formulas) < size:
         new_formulas = [generate_formula(all_tokens, max_len, functions, arities) for _ in range(size)]
