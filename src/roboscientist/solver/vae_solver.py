@@ -64,6 +64,7 @@ VAESolverParams = namedtuple(
         'noise_coef',                               # Float: Noise coefficient.
                                                     # model weights = model weights + |noise_coef| * noise
         'add_noise_every_n_steps',                  # Int: Add noise to model on every |add_noise_every_n_steps| epoch
+        'sample_from_logits',                       # Bool: If False -> most probable, True -> sample
 
         # files
         'retrain_file',                             # Str: File to retrain the model. Used for retraining stage
@@ -126,6 +127,7 @@ VAESolverParams.__new__.__defaults__ = (
     False,                                          # add_noise_to_model_params
     0.01,                                           # noise_coef
     5,                                              # add_noise_every_n_steps
+    False,                                          # sample_from_logits
     'retrain',                                      # retrain_file
     'sample',                                       # file_to_sample
     'train',                                        # pretrain_train_file
@@ -212,7 +214,8 @@ class VAESolver(rs_solver_base.BaseSolver):
 
         cond_x, cond_y = self._get_condition(self.params.n_formulas_to_sample)
         self.model.sample(self.params.n_formulas_to_sample, self.params.max_formula_length,
-                          self.params.file_to_sample, Xs=cond_x, ys=cond_y, ensure_valid=False, unique=True)
+                          self.params.file_to_sample, Xs=cond_x, ys=cond_y, ensure_valid=False, unique=True,
+                          sample_from_logits=self.params.sample_from_logits)
 
         # self._maybe_remove_noise_from_model_params(epoch, noises)
 
