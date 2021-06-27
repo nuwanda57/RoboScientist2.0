@@ -11,12 +11,22 @@ class Operator:
 
 def _SAFE_LOG_FUNC(x):
     with np.errstate(divide='ignore', invalid='ignore'):
-        return np.where(x > 0.01, np.log(np.abs(x)), 0.0)
+        return np.where(x > 0.0001, np.log(np.abs(x)), 0.0)
+
+
+def _SAFE_DIV_FUNC(x, y):
+    with np.errstate(divide='ignore', invalid='ignore', over='ignore'):
+        return np.where(np.abs(y) > 0.001, np.divide(x, y), 0.0)
 
 
 def _SAFE_SQRT_FUNC(x):
     with np.errstate(divide='ignore', invalid='ignore'):
         return np.where(x > 0, np.sqrt(np.abs(x)), 0.0)
+
+
+def _SAFE_EXP_FUNC(x):
+    with np.errstate(divide='ignore', invalid='ignore', over='ignore'):
+        return np.where(x < 10, np.exp(x), np.exp(10))
 
 
 OPERATORS = {
@@ -60,6 +70,18 @@ OPERATORS = {
         func=lambda x: _SAFE_SQRT_FUNC(x),
         name='safe_sqrt',
         repr=lambda x: f'sqrt({x})',
+        arity=1,
+    ),
+    'safe_div': Operator(
+        func=lambda x, y: _SAFE_DIV_FUNC(x, y),
+        name='safe_div',
+        repr=lambda x, y: f'({x} / {y})',
+        arity=2,
+    ),
+    'safe_exp': Operator(
+        func=lambda x: _SAFE_EXP_FUNC(x),
+        name='safe_exp',
+        repr=lambda x: f'(e^{x})',
         arity=1,
     ),
 }
