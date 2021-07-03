@@ -239,6 +239,7 @@ class VAESolver(rs_solver_base.BaseSolver):
                 f_to_eval = rs_equation.Equation(f_to_eval)
                 if not f_to_eval.check_validity()[0]:
                     continue
+                f_to_eval = rs_optimize_constants.fill_equation_with_constants(f_to_eval)
                 constants = rs_optimize_constants.optimize_constants(f_to_eval, self.xs, self.ys)
                 # print(constants)
                 y = f_to_eval.func(self.xs.reshape(-1, self.params.model_params['x_dim']), constants)
