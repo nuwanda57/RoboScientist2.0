@@ -1,6 +1,7 @@
 import roboscientist.equation.operators as rs_operators
 
 from collections import deque
+from copy import deepcopy
 import numpy as np
 
 
@@ -21,6 +22,9 @@ class Equation:
 
     def check_validity(self):
         return self._status == 'OK', self._status
+
+    def get_prefix_list(self):
+        return deepcopy(self._prefix_list)
 
     def repr(self, constants=None):
         if constants is None:
@@ -100,3 +104,8 @@ class Equation:
             return f'Invalid Equation {self._prefix_list}'
         self._repr = stack.pop()
         return 'OK'
+
+
+if __name__ == '__main__':
+    eq = Equation(['safe_div', 'x1', 'x2'])
+    print(eq.repr())

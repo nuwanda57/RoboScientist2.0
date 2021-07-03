@@ -1,4 +1,5 @@
-from . import config, optimize_constants
+import roboscientist.solver.vae_solver_lib.config as rs_config
+import roboscientist.solver.vae_solver_lib.constants as rs_constants
 
 import roboscientist.equation.equation as rs_equation
 
@@ -20,9 +21,9 @@ def build_single_batch_from_formulas_list(formulas_list, solver, batch_Xs, batch
     # print(len(batch_Xs), type(batch_Xs))
     for i, f in enumerate(formulas_list):
         f_idx = [solver._token2ind[t] for t in f]
-        padding = [solver._token2ind[config.PADDING]] * (max_len - len(f_idx))
-        batch_in.append([solver._token2ind[config.START_OF_SEQUENCE]] + f_idx + padding)
-        batch_out.append(f_idx + [solver._token2ind[config.END_OF_SEQUENCE]] + padding)
+        padding = [solver._token2ind[rs_config.PADDING]] * (max_len - len(f_idx))
+        batch_in.append([solver._token2ind[rs_config.START_OF_SEQUENCE]] + f_idx + padding)
+        batch_out.append(f_idx + [solver._token2ind[rs_config.END_OF_SEQUENCE]] + padding)
         new_batch_Xs.append(batch_Xs[i])
         new_batch_ys.append(batch_ys[i])
         # except:
@@ -52,7 +53,7 @@ def build_ordered_batches(formula_file, solver):
                 print(f_to_eval)
                 t_c += 1
                 continue
-            constants = optimize_constants.optimize_constants(f_to_eval, solver.xs, solver.ys)
+            constants = rs_constants.optimize_constants(f_to_eval, solver.xs, solver.ys)
             # print(f_to_eval.repr(constants), constants, f_to_eval._prefix_list)
             y = f_to_eval.func(solver.xs.reshape(-1, solver.params.model_params['x_dim']), constants)
             if y.shape == (1,) or y.shape == (1, 1) or y.shape == ():
@@ -87,7 +88,7 @@ def build_ordered_batches(formula_file, solver):
 def _loss_function(logits, targets, mu, logsigma, model):
     reconstruction_loss = F.cross_entropy(
         logits.view(-1, logits.size(-1)), targets.view(-1),
-        ignore_index=model._token2ind[config.PADDING], reduction='none').view(targets.size())
+        ignore_index=model._token2ind[rs_config.PADDING], reduction='none').view(targets.size())
     KLD = -0.5 * torch.sum(1 + logsigma - mu.pow(2) - logsigma.exp()) / len(mu)
     # reconstruction_loss: (formula_dim, batch_size), so we take sum over all tokens and mean over formulas in batch
     return reconstruction_loss.sum(dim=0).mean(), KLD

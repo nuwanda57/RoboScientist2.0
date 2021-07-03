@@ -1,5 +1,5 @@
 import roboscientist.solver.solver_base as rs_solver_base
-import roboscientist.solver.vae_solver_lib.optimize_constants as rs_optimize_constants
+import roboscientist.solver.vae_solver_lib.constants as rs_optimize_constants
 import roboscientist.solver.vae_solver_lib.config as rs_config
 import roboscientist.solver.vae_solver_lib.model as rs_model
 import roboscientist.solver.vae_solver_lib.train as rs_train
