@@ -33,7 +33,7 @@ def generate_pretrain_dataset(size, max_len, file=None, functions=None, arities=
         functions = ['sin', 'add', 'cos', 'mul']
     if arities is None:
         arities = {'cos': 1, 'sin': 1, 'add': 2, 'mul': 2,  'div': 2, 'sub': 2, 'pow': 2, 'safe_log': 1,
-                   'safe_sqrt': 1, 'safe_exp': 1, 'safe_div': 2}
+                   'safe_sqrt': 1, 'safe_exp': 1, 'safe_div': 2, 'safe_pow': 2}
     formulas = []
     while len(formulas) < size:
         new_formulas = [generate_formula(all_tokens, max_len, functions, arities) for _ in range(size)]
