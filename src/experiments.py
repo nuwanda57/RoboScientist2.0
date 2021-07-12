@@ -112,7 +112,7 @@ def run_experiment_bio_1(
         file_to_sample='sample_1_' + str(time.time()),
         functions=functions,
         arities={'sin': 1, 'add': 2, 'sub': 2, 'safe_log': 1, 'cos': 1, 'mul': 2,
-                 'safe_sqrt': 1, 'safe_exp': 1, 'safe_div': 2},
+                 'safe_sqrt': 1, 'safe_exp': 1, 'safe_div': 2, 'safe_pow': 2},
         free_variables=free_variables,
         model_params={'token_embedding_dim': 128, 'hidden_dim': 128,
                       'encoder_layers_cnt': 1, 'decoder_layers_cnt': 1,
