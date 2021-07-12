@@ -29,6 +29,11 @@ def _SAFE_EXP_FUNC(x):
         return np.where(x < 10, np.exp(x), np.exp(10))
 
 
+def _SAFE_POW_FUNC(x, y):
+    with np.errstate(divide='ignore', invalid='ignore', over='ignore'):
+        return _SAFE_EXP_FUNC(y * _SAFE_LOG_FUNC(x))
+
+
 OPERATORS = {
     'add': Operator(
         func=lambda x, y: x + y,
@@ -83,6 +88,12 @@ OPERATORS = {
         name='safe_exp',
         repr=lambda x: f'(e^{x})',
         arity=1,
+    ),
+    'safe_pow': Operator(
+        func=lambda x, y: _SAFE_POW_FUNC(x, y),
+        name='safe_pow',
+        repr=lambda x, y: f'(x^{y})',
+        arity=2,
     ),
 }
 
