@@ -45,28 +45,34 @@ def build_ordered_batches(formula_file, solver):
             total_count += 1
             f_to_eval = line.split()
             formulas.append(line.split())
-            f_to_eval = [float(x) if x in solver.params.float_constants else x for x in f_to_eval]
-            f_to_eval = rs_equation.Equation(f_to_eval)
-            if not f_to_eval.check_validity()[0]:
-                print(f_to_eval.check_validity())
-                print(f_to_eval)
-                t_c += 1
-                continue
-            constants = optimize_constants.optimize_constants(f_to_eval, solver.xs, solver.ys)
-            # print(f_to_eval.repr(constants), constants, f_to_eval._prefix_list)
-            y = f_to_eval.func(solver.xs.reshape(-1, solver.params.model_params['x_dim']), constants)
-            if y.shape == (1,) or y.shape == (1, 1) or y.shape == ():
-                # print(y, type(y), y.dtype)
-                y = np.repeat(y.astype(np.float64),
-                              solver.xs.reshape(-1, solver.params.model_params['x_dim']).shape[0]).reshape(-1, 1)
-            if not np.isfinite(y).all() or y.shape == () or \
-                    solver.xs.reshape(-1, solver.params.model_params['x_dim']).shape[0] != y.reshape(-1, 1).shape[0]:
-                print(y, type(y), y.shape)
-                raise 42
-            Xs.append(solver.xs.reshape(-1, solver.params.model_params['x_dim']))
-            ys.append(y.reshape(-1, 1))
-            # print(y.shape)
-            # assert solver.xs.reshape(-1, solver.params.model_params['x_dim']).shape[0] == y.reshape(-1, 1).shape[0]
+            if solver.params.is_condition:
+                # if condition, we want to add 'formula ys' to training on the formula
+                f_to_eval = [float(x) if x in solver.params.float_constants else x for x in f_to_eval]
+                f_to_eval = rs_equation.Equation(f_to_eval)
+                if not f_to_eval.check_validity()[0]:
+                    print(f_to_eval.check_validity())
+                    print(f_to_eval)
+                    t_c += 1
+                    continue
+                constants = optimize_constants.optimize_constants(f_to_eval, solver.xs, solver.ys)
+                # print(f_to_eval.repr(constants), constants, f_to_eval._prefix_list)
+                y = f_to_eval.func(solver.xs.reshape(-1, solver.params.model_params['x_dim']), constants)
+                if y.shape == (1,) or y.shape == (1, 1) or y.shape == ():
+                    # print(y, type(y), y.dtype)
+                    y = np.repeat(y.astype(np.float64),
+                                  solver.xs.reshape(-1, solver.params.model_params['x_dim']).shape[0]).reshape(-1, 1)
+                if not np.isfinite(y).all() or y.shape == () or \
+                        solver.xs.reshape(-1, solver.params.model_params['x_dim']).shape[0] != y.reshape(-1, 1).shape[0]:
+                    print(y, type(y), y.shape)
+                    raise 42
+                Xs.append(solver.xs.reshape(-1, solver.params.model_params['x_dim']))
+                ys.append(y.reshape(-1, 1))
+                # print(y.shape)
+                # assert solver.xs.reshape(-1, solver.params.model_params['x_dim']).shape[0] == y.reshape(-1, 1).shape[0]
+            else:
+                # if no condition, we don't use Xs and Ys for training, so we just put dataset Xs and ys there
+                Xs.append(solver.xs.reshape(-1, solver.params.model_params['x_dim']))
+                ys.append(solver.ys.reshape(-1, 1))
 
     batches = []
     order = range(len(formulas))  # This will be necessary for reconstruction

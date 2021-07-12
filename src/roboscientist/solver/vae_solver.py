@@ -182,8 +182,10 @@ class VAESolver(rs_solver_base.BaseSolver):
         if checkpoint_file is not None:
             self._load_from_checkpoint(checkpoint_file)
         else:
-            self.pretrain_batches, _ = rs_train.build_ordered_batches(formula_file='train', solver=self)
-            self.valid_batches, _ = rs_train.build_ordered_batches(formula_file='val', solver=self)
+            self.pretrain_batches, _ = rs_train.build_ordered_batches(formula_file=self.params.pretrain_train_file,
+                                                                      solver=self)
+            self.valid_batches, _ = rs_train.build_ordered_batches(formula_file=self.params.pretrain_val_file,
+                                                                   solver=self)
             rs_train.pretrain(n_pretrain_steps=self.params.n_pretrain_steps, model=self.model, optimizer=self.optimizer,
                            pretrain_batches=self.pretrain_batches, pretrain_val_batches=self.valid_batches,
                            kl_coef=self.params.kl_coef)
