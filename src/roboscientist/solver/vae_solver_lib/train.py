@@ -14,10 +14,8 @@ import torch.nn.functional as F
 def build_single_batch_from_formulas_list(formulas_list, solver, batch_Xs, batch_ys):
     batch_in, batch_out = [], []
     max_len = max([len(f) for f in formulas_list])
-    t_c = 0
     new_batch_Xs = []
     new_batch_ys = []
-    # print(len(batch_Xs), type(batch_Xs))
     for i, f in enumerate(formulas_list):
         f_idx = [solver._token2ind[t] for t in f]
         padding = [solver._token2ind[config.PADDING]] * (max_len - len(f_idx))
@@ -25,9 +23,6 @@ def build_single_batch_from_formulas_list(formulas_list, solver, batch_Xs, batch
         batch_out.append(f_idx + [solver._token2ind[config.END_OF_SEQUENCE]] + padding)
         new_batch_Xs.append(batch_Xs[i])
         new_batch_ys.append(batch_ys[i])
-        # except:
-        #     t_c +=1
-    print(f'Failed to add formula to single batch {t_c}/{len(formulas_list)}', flush=True)
     # we transpose here to make it compatible with LSTM input
     return (torch.LongTensor(batch_in).T.contiguous().to(solver.params.device), \
            torch.LongTensor(batch_out).T.contiguous().to(solver.params.device)), \
@@ -36,6 +31,9 @@ def build_single_batch_from_formulas_list(formulas_list, solver, batch_Xs, batch
 
 def build_ordered_batches(formula_file, solver):
     formulas = []
+    #  VAE might be conditional on X, y (see vae_solver.params.is_condition).
+    #  Usually it is not, so Xs and ys batches are not used.
+    #  If it is used, we do X=solver.xs, y=formula(solver.xs)
     Xs = []
     ys = []
     t_c = 0
@@ -75,7 +73,7 @@ def build_ordered_batches(formula_file, solver):
                 ys.append(solver.ys.reshape(-1, 1))
 
     batches = []
-    order = range(len(formulas))  # This will be necessary for reconstruction
+    order = range(len(formulas))  # This will be necessary for reconstruction, however, for generation this is not used
     sorted_formulas, sorted_Xs, sorted_ys, order = zip(*sorted(zip(formulas, Xs, ys, order), key=lambda x: len(x[0])))
     for batch_ind in range((len(sorted_formulas) + solver.params.batch_size - 1) // solver.params.batch_size):
         batch_formulas = sorted_formulas[batch_ind * solver.params.batch_size:(batch_ind + 1) * solver.params.batch_size]

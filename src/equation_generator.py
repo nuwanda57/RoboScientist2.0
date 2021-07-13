@@ -23,7 +23,8 @@ def generate_formula(all_tokens, max_len, functions, arities):
                 return ' '.join(formula)
 
 
-def generate_pretrain_dataset(size, max_len, file=None, functions=None, arities=None, all_tokens=None):
+def generate_pretrain_dataset(size, max_len, file=None, functions=None, arities=None, all_tokens=None,
+                              formula_predicate=None):
     if all_tokens is None:
         # all_tokens = ['x1', 'sin', 'add', 'safe_log', 'safe_sqrt', 'cos', 'mul', 'sub', 'const']
         all_tokens = ['x1', 'sin', 'add', 'cos', 'mul',]
@@ -34,6 +35,9 @@ def generate_pretrain_dataset(size, max_len, file=None, functions=None, arities=
     if arities is None:
         arities = {'cos': 1, 'sin': 1, 'add': 2, 'mul': 2,  'div': 2, 'sub': 2, 'pow': 2, 'safe_log': 1,
                    'safe_sqrt': 1, 'safe_exp': 1, 'safe_div': 2, 'safe_pow': 2}
+    if formula_predicate is None:
+        formula_predicate = lambda func: True
+
     formulas = []
     while len(formulas) < size:
         new_formulas = [generate_formula(all_tokens, max_len, functions, arities) for _ in range(size)]
@@ -42,6 +46,7 @@ def generate_pretrain_dataset(size, max_len, file=None, functions=None, arities=
         # new_formulas = [' '.join(f) for f in new_formulas]
         formulas += new_formulas
         formulas = list(np.unique(formulas))
+        formulas = [formula for formula in formulas if formula_predicate(formula)]
         print(len(formulas))
         formulas = formulas[:size]
 

@@ -5,13 +5,13 @@ import equation_generator as rs_equation_generator
 import torch
 
 import os
-import sys
 import time
 import numpy as np
 
 
 def run_experiment_with_formula(
         functions=None,  # list, subset of ['sin', 'add', 'safe_log', 'safe_sqrt', 'cos', 'mul', 'sub']
+        arities=None,
         free_variables=None,  # ['x1']
         wandb_proj='some_experiments',  # string
         project_name='COLAB',  # string
@@ -22,13 +22,16 @@ def run_experiment_with_formula(
 ):
     if functions is None:
         functions = ['sin', 'add', 'cos', 'mul']
+    if arities is None:
+        arities = {'cos': 1, 'sin': 1, 'add': 2, 'mul': 2,  'div': 2, 'sub': 2, 'pow': 2, 'safe_log': 1,
+                   'safe_sqrt': 1, 'safe_exp': 1, 'safe_div': 2, 'safe_pow': 2}
     if free_variables is None:
         free_variables = ['x1']
     if constants is None:
         constants = []
-    rs_equation_generator.generate_pretrain_dataset(20000, 14, 'train', functions=functions,
+    rs_equation_generator.generate_pretrain_dataset(20000, 14, 'train', functions=functions, arities=arities,
                                                     all_tokens=functions + free_variables + constants)
-    rs_equation_generator.generate_pretrain_dataset(10000, 14, 'val', functions=functions,
+    rs_equation_generator.generate_pretrain_dataset(10000, 14, 'val', functions=functions, arities=arities,
                                                     all_tokens=functions + free_variables + constants)
     with open('wandb_key') as f:
         os.environ["WANDB_API_KEY"] = f.read().strip()
@@ -75,6 +78,7 @@ def run_experiment_bio_1(
         X,
         y_true,
         functions=None,  # list, subset of ['sin', 'add', 'safe_log', 'safe_sqrt', 'cos', 'mul', 'sub']
+        arities=None,
         free_variables=None,  # ['x1']
         wandb_proj='some_experiments',  # string
         project_name='COLAB',  # string
@@ -83,20 +87,28 @@ def run_experiment_bio_1(
         train_size=20000,
         test_size=10000,
         n_formulas_to_sample=2000,
+        formula_predicate=None,
 ):
     if functions is None:
         functions = ['sin', 'add', 'cos', 'mul']
+    if arities is None:
+        arities = {'cos': 1, 'sin': 1, 'add': 2, 'mul': 2,  'div': 2, 'sub': 2, 'pow': 2, 'safe_log': 1,
+                   'safe_sqrt': 1, 'safe_exp': 1, 'safe_div': 2, 'safe_pow': 2}
     if free_variables is None:
         free_variables = ['x1']
     if constants is None:
         constants = ['const']
+    if formula_predicate is None:
+        formula_predicate = lambda func: True
 
     train_file = 'train_' + str(time.time())
     val_file = 'val_ ' + str(time.time())
-    rs_equation_generator.generate_pretrain_dataset(train_size, 14, train_file, functions=functions,
-                                                    all_tokens=functions + free_variables + constants)
-    rs_equation_generator.generate_pretrain_dataset(test_size, 14, val_file, functions=functions,
-                                                    all_tokens=functions + free_variables + constants)
+    rs_equation_generator.generate_pretrain_dataset(train_size, 14, train_file, functions=functions, arities=arities,
+                                                    all_tokens=functions + free_variables + constants,
+                                                    formula_predicate=formula_predicate)
+    rs_equation_generator.generate_pretrain_dataset(test_size, 14, val_file, functions=functions, arities=arities,
+                                                    all_tokens=functions + free_variables + constants,
+                                                    formula_predicate=formula_predicate)
     with open('wandb_key') as f:
         os.environ["WANDB_API_KEY"] = f.read().strip()
 

@@ -23,6 +23,7 @@ VAESolverParams = namedtuple(
                                                     # hidden_dim, encoder_layers_cnt, decoder_layers_cnt, latent_dim,
                                                     # x_dim
         'is_condition',                             # is_condition
+        'formula_predicate',                        # formula predicate
 
         # formula parameters
         'max_formula_length',                       # Int: Maximum length of a formula
@@ -103,7 +104,8 @@ VAESolverParams.__new__.__defaults__ = (
      'encoder_layers_cnt': 1,
      'decoder_layers_cnt': 1, 'latent_dim':  8,
      'x_dim': 1},                                   # model_params
-    True,                                           # is_condition
+    False,                                          # is_condition
+    lambda func: True,                              # formula_predicate
     15,                                             # max_formula_length
     2,                                              # max_degree
     ['sin', 'add', 'log'],                          # functions
@@ -158,9 +160,6 @@ class VAESolver(rs_solver_base.BaseSolver):
                           [rs_config.START_OF_SEQUENCE, rs_config.END_OF_SEQUENCE, rs_config.PADDING] + \
                           self.params.free_variables
         self._token2ind = {t: i for i, t in enumerate(self._ind2token)}
-
-        # if self.params.create_pretrain_dataset:
-        #     self._create_pretrain_dataset(strategy='node_sample')
 
         if self.params.retrain_strategy == 'last_steps':
             self.stats = FormulaStatisticsLastN(use_n_last_steps=self.params.use_n_last_steps,
@@ -226,6 +225,8 @@ class VAESolver(rs_solver_base.BaseSolver):
         valid_mses = []
         all_constants = []
         n_all = 0
+        n_false_predicate = 0
+        n_invalid = 0
         with open(self.params.file_to_sample) as f:
             for line in f:
                 n_all += 1
@@ -240,24 +241,28 @@ class VAESolver(rs_solver_base.BaseSolver):
                 f_to_eval = [float(x) if isfloat(x) else x for x in f_to_eval]
                 f_to_eval = rs_equation.Equation(f_to_eval)
                 if not f_to_eval.check_validity()[0]:
+                    n_invalid += 1
                     continue
+
+                if not self.params.formula_predicate(line.strip().split()):
+                    n_false_predicate += 1
+                    continue
+
                 constants = rs_optimize_constants.optimize_constants(f_to_eval, self.xs, self.ys)
-                # print(constants)
                 y = f_to_eval.func(self.xs.reshape(-1, self.params.model_params['x_dim']), constants)
-                # print(f_to_eval.repr(constants))
                 if y.shape == (1,) or y.shape == (1, 1) or y.shape == ():
-                    # print(y, type(y), y.dtype)
                     y = np.repeat(y.astype(np.float64),
                                   self.xs.reshape(-1, self.params.model_params['x_dim']).shape[0]).reshape(-1, 1)
                 mse = mean_squared_error(y, self.ys)
-                # print(mse)
                 valid_formulas.append(line.strip())
                 valid_mses.append(mse)
                 valid_equations.append(f_to_eval)
                 all_constants.append(constants)
-        custom_log['unique_valid_formulas_sampled_percentage'] = len(valid_formulas) / self.params.n_formulas_to_sample
+        custom_log['unique_valid_formulas_sampled_percentage'] = (self.params.n_formulas_to_sample - n_invalid) / \
+                                                                 self.params.n_formulas_to_sample
         custom_log['unique_formulas_sampled_percentage'] = n_all / self.params.n_formulas_to_sample
-        custom_log['unique_valid_to_all_unique'] = len(valid_formulas) / n_all
+        custom_log['unique_valid_to_all_unique'] = (n_all - n_invalid) / n_all
+        custom_log['predicate_ok_valid_to_all_valid_unique'] = (n_all - n_invalid - n_false_predicate) / (n_all - n_invalid)
 
         self.stats.save_best_samples(sampled_mses=valid_mses, sampled_formulas=valid_formulas)
 
@@ -295,67 +300,6 @@ class VAESolver(rs_solver_base.BaseSolver):
     def _add_next_point(self, next_point):
         self.xs = np.append(self.xs, next_point).reshape(-1, self.params.model_params['x_dim'])
         self.ys = np.append(self.ys, self.params.true_formula.func(np.array(next_point).reshape(-1, 1)))
-
-    # def _create_pretrain_dataset(self, strategy):
-    #     if strategy == 'node_sample':
-    #         generate_pretrain_dataset.generate_pretrain_dataset(
-    #             self.params.n_pretrain_formulas, self.params.max_formula_length - 1, self.params.pretrain_train_file,
-    #             functions=self.params.functions, arities=self.params.arities,
-    #             all_tokens=self.params.functions + self.params.float_constants + \
-    #                        self.params.free_variables + ["Symbol('const%d')"])
-    #         generate_pretrain_dataset.generate_pretrain_dataset(
-    #             self.params.n_pretrain_formulas, self.params.max_formula_length - 1, self.params.pretrain_val_file,
-    #             functions=self.params.functions, arities=self.params.arities,
-    #             all_tokens=self.params.functions + self.params.float_constants + \
-    #                        self.params.free_variables + ["Symbol('const%d')"])
-    #         return
-    #
-    #     if strategy == 'uniform':
-    #         self._pretrain_formulas = [
-    #             equations_generation.generate_random_equation_from_settings({
-    #                 'functions': self.params.functions, 'constants': self.params.constants},
-    #             max_degree=self.params.max_degree, return_graph_infix=True) for _ in range(self.params.n_pretrain_formulas)]
-    #
-    #         self._pretrain_formulas_val = [
-    #             equations_generation.generate_random_equation_from_settings({
-    #                 'functions': self.params.functions, 'constants': self.params.constants},
-    #                 max_degree=self.params.max_degree, return_graph_infix=True) for _ in range(
-    #                 self.params.n_pretrain_formulas)]
-    #
-    #         with open(self.params.pretrain_train_file, 'w') as ff:
-    #             for i, D in enumerate(self._pretrain_formulas):
-    #                 ff.write(D)
-    #                 if i != len(self._pretrain_formulas) - 1:
-    #                     ff.write('\n')
-    #
-    #         with open(self.params.pretrain_val_file, 'w') as ff:
-    #             for i, D in enumerate(self._pretrain_formulas_val):
-    #                 ff.write(D)
-    #                 if i != len(self._pretrain_formulas_val) - 1:
-    #                     ff.write('\n')
-    #         return
-    #
-    #     raise 57
-    #
-    # def _maybe_add_noise_to_model_params(self, epoch):
-    #     noises = []
-    #     if self.params.add_noise_to_model_params and epoch % self.params.add_noise_every_n_steps == 1:
-    #         with torch.no_grad():
-    #             for param in self.model.parameters():
-    #                 noise = torch.randn(
-    #                     param.size()).to(self.params.device) * self.params.noise_coef * torch.norm(param).to(
-    #                     self.params.device)
-    #                 param.add_(noise)
-    #                 noises.append(noise)
-    #     return noises
-    #
-    # def _maybe_remove_noise_from_model_params(self, epoch, noises):
-    #     noises = noises[::-1]
-    #     if self.params.add_noise_to_model_params and epoch % self.params.add_noise_every_n_steps == 1:
-    #         with torch.no_grad():
-    #             for param in self.model.parameters():
-    #                 noise = noises.pop()
-    #                 param.add_(-noise)
 
 
 class FormulaStatisticsLastN:
