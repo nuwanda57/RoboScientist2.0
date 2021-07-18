@@ -132,7 +132,7 @@ def run_epoch(model, optimizer, train_batches, valid_batches, kl_coef=0.01):
         np.mean(losses), np.mean(rec_losses), np.mean(kl_losses)))
 
     valid_losses = _evaluate(model, valid_batches, kl_coef)
-    print('\t[validation] loss: %0.3f, rec loss: %0.3f, kl: %0.3f' % valid_losses)
+    print('\t[validation] loss: %0.3f, rec loss: %0.3f, kl: %0.3f' % valid_losses, flush=True)
     train_losses = (np.mean(losses), np.mean(rec_losses), np.mean(kl_losses))
     return train_losses, valid_losses
 
